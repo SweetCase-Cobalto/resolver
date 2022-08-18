@@ -4,6 +4,7 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
+const cors = require('cors');
 // apps
 const appForPublic = require('./api/publics/index');
 // express app
@@ -11,6 +12,7 @@ const app = express();
 // ThirdParty
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cors());
 // Router 등록
 app.use('/api/public', appForPublic);
 // Run

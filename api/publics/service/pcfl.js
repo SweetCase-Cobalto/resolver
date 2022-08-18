@@ -9,27 +9,37 @@ const pcfl = (req, res) => {
 
         File의 mimetype은 반드시 midi
     */
+
+
     const form = formidable({
         multiples: false,
         filter: ({name, originalFileName, mimetype}) => {
-            return mimetype && mimetype.includes('audio/midi');
+            return mimetype && (
+                mimetype.includes('audio/midi')
+                || mimetype.includes('audio/mid')
+            )
         }
     });
     form.parse(req, (err, field, file) => {
+        if (Object.keys(file).length === 0) {
+            // File Not Exists == Not Midi
+            res.status(400)
+                .json({msg: '확장자 .mid 또는 .midi 파일을 업로드 해 주세요.'});
+            return;
+        }
         if (err) {
             // Parsing Error
-            next(err);
-            res.status(400).json({'msg': '입력 데이터가 정상적이지 않습니다.'});
+            res.status(400).json({msg: '입력 데이터가 정상적이지 않습니다.'});
             return;
         }
         // interval 갖고오기
         const interval = parseFloat(field.interval);
         if (Number.isNaN(interval)) {
-            res.status(400).json({'msg': '정수 또는 실수를 입력해야 합니다.'});
+            res.status(400).json({msg: '정수 또는 실수를 입력해야 합니다.'});
             return;
         }
         if (interval < 0.001 || interval > 0.5) {
-            res.status(400).json({'msg': 'interval 범위는 0.001이상 0.5이하 입니다.'});
+            res.status(400).json({msg: 'interval 범위는 0.001이상 0.5이하 입니다.'});
             return;
         }
         // 파일 데이터 갖고오기
@@ -45,7 +55,7 @@ const pcfl = (req, res) => {
             else {
                 // 작업 성공 시 다운로드
                 res.status(200).download(`tmp/${tmpName}`, name, (err) => {
-                    if (err) res.status(400).json({'msg': '파일 다운로드에 실패했습니다.'});
+                    if (err) res.status(400).json({msg: '파일 다운로드에 실패했습니다.'});
                     else {
                         res.end();
                         // 다운로드 후 임시파일 삭제
